@@ -31,6 +31,7 @@ import static org.junit.Assert.assertTrue;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.core.ApiClock;
 import com.google.api.gax.paging.Page;
+import com.google.api.services.storage.model.Notification;
 import com.google.api.services.storage.model.Policy.Bindings;
 import com.google.api.services.storage.model.StorageObject;
 import com.google.api.services.storage.model.TestIamPermissionsResponse;
@@ -3066,5 +3067,27 @@ public class StorageImplTest {
     WriteChannel writer = new BlobWriteChannel(options, new URL(SIGNED_URL));
     assertNotNull(writer);
     assertTrue(writer.isOpen());
+  }
+
+  @Test
+  public void testCreateNotification() {
+    String id = "notification-id";
+    String topicName = "notification-topic";
+    String etag = "notification-etag";
+    String payloadFormat = "JSON_API_V1";
+    Notification notification = new Notification();
+    notification.setId(id);
+    notification.setPayloadFormat(payloadFormat);
+    notification.setTopic(topicName);
+    notification.setEtag(etag);
+    EasyMock.expect(storageRpcMock.createNotification(BUCKET_NAME1, notification))
+        .andReturn(notification);
+    EasyMock.replay(storageRpcMock);
+    initializeService();
+    Notification remoteNotification = storage.createNotification(BUCKET_NAME1, notification);
+    assertEquals(id, remoteNotification.getId());
+    assertEquals(topicName, remoteNotification.getTopic());
+    assertEquals(payloadFormat, remoteNotification.getPayloadFormat());
+    assertEquals(etag, remoteNotification.getEtag());
   }
 }
