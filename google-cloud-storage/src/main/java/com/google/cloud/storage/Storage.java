@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.api.gax.paging.Page;
+import com.google.api.services.storage.model.Notification;
 import com.google.auth.ServiceAccountSigner;
 import com.google.auth.ServiceAccountSigner.SigningException;
 import com.google.cloud.FieldSelector;
@@ -3209,4 +3210,12 @@ public interface Storage extends Service<StorageOptions> {
    * @throws StorageException upon failure
    */
   ServiceAccount getServiceAccount(String projectId);
+
+  /**
+   * Get the notification with the specified name on the specified object.
+   *
+   * @return the notification object that exist on the bucket.
+   * @throws StorageException upon failure
+   */
+  Notification getNotification(String bucket, String notification);
 }

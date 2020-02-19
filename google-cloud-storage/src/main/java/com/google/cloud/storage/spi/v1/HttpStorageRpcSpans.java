@@ -90,6 +90,8 @@ class HttpStorageRpcSpans {
   static final String SPAN_NAME_LIST_NOTIFICATIONS = getTraceSpanName("listNotifications(String)");
   static final String SPAN_NAME_CREATE_NOTIFICATION =
       getTraceSpanName("createNotification(String,Notification)");
+  static final String SPAN_NAME_GET_NOTIFICATION =
+      getTraceSpanName("getNotification(String,String)");
   static final String SPAN_LOCK_RETENTION_POLICY =
       getTraceSpanName("lockRetentionPolicy(String,Long)");
   static final String SPAN_NAME_GET_SERVICE_ACCOUNT = getTraceSpanName("getServiceAccount(String)");
@@ -137,6 +139,7 @@ class HttpStorageRpcSpans {
           SPAN_NAME_DELETE_NOTIFICATION,
           SPAN_NAME_LIST_NOTIFICATIONS,
           SPAN_NAME_CREATE_NOTIFICATION,
+          SPAN_NAME_GET_NOTIFICATION,
           SPAN_NAME_GET_SERVICE_ACCOUNT,
           SPAN_LOCK_RETENTION_POLICY,
           SPAN_NAME_BATCH_SUBMIT);
