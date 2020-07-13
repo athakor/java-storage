@@ -3597,6 +3597,18 @@ public interface Storage extends Service<StorageOptions> {
   /**
    * Creates a notification subscription for a given bucket.
    *
+   * <p>Example of creating a notification subscription:
+   *
+   * <pre>{@code
+   * String bucketName = "my-unique-bucket";
+   * String topic = "projects/myProject/topics/topic"
+   * Notification bucketNotification = Notification.newBuilder(topic)
+   *  .setCustomAttributes(ImmutableMap.of("label1", "value1"))
+   *  .setPayloadFormat(Notification.PayloadFormat.JSON_API_V1.JSON_API_V1)
+   *  .build();
+   * Notification notification = storage.createNotification(bucketName, bucketNotification);
+   * }</pre>
+   *
    * @param bucket name of the bucket
    * @param notification a {@code Notification} object
    * @return the notification that was created
@@ -3606,6 +3618,14 @@ public interface Storage extends Service<StorageOptions> {
 
   /**
    * Gets the notification with the specified name on the bucket.
+   *
+   * <p>Example of getting the notification:
+   *
+   * <pre>{@code
+   * String bucketName = "my-unique-bucket";
+   * String notificationId = "my-unique-notification-id";
+   * Notification notification = storage.getNotification(bucketName, notificationId);
+   * }</pre>
    *
    * @param bucket name of the bucket
    * @param notificationId notification ID
@@ -3617,6 +3637,13 @@ public interface Storage extends Service<StorageOptions> {
   /**
    * Retrieves a list of notification subscriptions for a given bucket.
    *
+   * <p>Example of getting a service account.
+   *
+   * <pre>{@code
+   * String bucketName = "my-unique-bucket";
+   * List<Notification> notifications = storage.listNotifications(bucketName);
+   * }</pre>
+   *
    * @param bucket name of the bucket
    * @return a list of {@link Notification} objects that exist on the bucket.
    * @throws StorageException upon failure
@@ -3625,6 +3652,19 @@ public interface Storage extends Service<StorageOptions> {
 
   /**
    * Deletes the notification subscription with the specified name on the bucket.
+   *
+   * <p>Example of getting a service account.
+   *
+   * <pre>{@code
+   * String bucketName = "my-unique-bucket";
+   * String notificationId = "my-unique-notification-id";
+   * boolean deleted = storage.deleteNotification(bucketName, notificationId);
+   * if (deleted) {
+   *   // the notification was deleted
+   * } else {
+   *   // the notification was not found
+   * }
+   * }</pre>
    *
    * @param bucket name of the bucket
    * @param notificationId ID of the notification to delete
