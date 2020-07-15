@@ -384,7 +384,6 @@ public class StorageImplMockitoTest {
           .setEventTypes(EVENT_TYPES)
           .setObjectNamePrefix(OBJECT_NAME_PREFIX)
           .setPayloadFormat(PAYLOAD_FORMAT)
-          .setGeneratedId(GENERATED_ID)
           .build();
   private static final Notification NOTIFICATION_02 =
       Notification.newBuilder(TOPIC)
@@ -394,7 +393,6 @@ public class StorageImplMockitoTest {
           .setEventTypes(EVENT_TYPES)
           .setObjectNamePrefix(OBJECT_NAME_PREFIX)
           .setPayloadFormat(PAYLOAD_FORMAT)
-          .setGeneratedId(GENERATED_ID)
           .build();
 
   private static final String ACCOUNT = "account";
@@ -1711,7 +1709,7 @@ public class StorageImplMockitoTest {
   }
 
   private void compareBucketsNotification(Notification value) {
-    assertEquals(GENERATED_ID, value.getGeneratedId());
+    assertNull(value.getGeneratedId());
     assertEquals(CUSTOM_ATTRIBUTES, value.getCustomAttributes());
     assertEquals(ETAG, value.getEtag());
     assertEquals(SELF_LINK, value.getSelfLink());
