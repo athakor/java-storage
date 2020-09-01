@@ -18,6 +18,8 @@ package com.google.cloud.storage.spi.v1;
 
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.services.storage.model.StorageObject;
+
+import java.io.InputStream;
 import java.util.Map;
 
 /** An interface for the collection of batch operations. */
@@ -32,6 +34,13 @@ public interface RpcBatch {
     /** This method will be called upon failure of the batch operation. */
     void onFailure(GoogleJsonError googleJsonError);
   }
+
+    /**
+     * Adds a call to "create storage object" to the batch, with the provided {@code callback} and
+     * {@code options}.
+     */
+    void addCreate(
+            StorageObject storageObject, InputStream content, Callback<StorageObject> callback, Map<StorageRpc.Option, ?> options);
 
   /**
    * Adds a call to "delete storage object" to the batch, with the provided {@code callback} and

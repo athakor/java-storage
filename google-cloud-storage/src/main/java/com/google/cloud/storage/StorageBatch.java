@@ -26,6 +26,9 @@ import com.google.cloud.storage.Storage.BlobTargetOption;
 import com.google.cloud.storage.spi.v1.RpcBatch;
 import com.google.cloud.storage.spi.v1.StorageRpc;
 import com.google.common.annotations.VisibleForTesting;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -77,6 +80,15 @@ public class StorageBatch {
   @VisibleForTesting
   StorageOptions getOptions() {
     return options;
+  }
+
+
+  public StorageBatchResult<Blob> create(BlobInfo blobInfo, byte[] content, BlobTargetOption... options) {
+    StorageBatchResult<Blob> result = new StorageBatchResult<>();
+    RpcBatch.Callback<StorageObject> callback = createInsertCallback(this.options, result);
+    Map<StorageRpc.Option, ?> optionMap = StorageImpl.optionMap(blobInfo, options);
+    batch.addCreate(blobInfo.toPb(),new ByteArrayInputStream(content),callback, optionMap);
+    return result;
   }
 
   /**
@@ -196,6 +208,22 @@ public class StorageBatch {
       public void onSuccess(StorageObject response) {
         result.success(
             response == null ? null : Blob.fromPb(serviceOptions.getService(), response));
+      }
+
+      @Override
+      public void onFailure(GoogleJsonError googleJsonError) {
+        result.error(new StorageException(googleJsonError));
+      }
+    };
+  }
+
+  private RpcBatch.Callback<StorageObject> createInsertCallback(
+          final StorageOptions serviceOptions, final StorageBatchResult<Blob> result) {
+    return new RpcBatch.Callback<StorageObject>() {
+      @Override
+      public void onSuccess(StorageObject response) {
+        result.success(
+                response == null ? null : Blob.fromPb(serviceOptions.getService(), response));
       }
 
       @Override

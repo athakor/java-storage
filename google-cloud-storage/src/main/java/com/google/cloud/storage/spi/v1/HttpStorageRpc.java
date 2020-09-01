@@ -139,7 +139,21 @@ public class HttpStorageRpc implements StorageRpc {
       batches.add(storage.batch(batchRequestInitializer));
     }
 
-    @Override
+      @Override
+      public void addCreate(StorageObject storageObject, InputStream content, Callback<StorageObject> callback, Map<Option, ?> options) {
+          try {
+              if (currentBatchSize == MAX_BATCH_SIZE) {
+                  batches.add(storage.batch());
+                  currentBatchSize = 0;
+              }
+              insertCall(storageObject,content,options).queue(batches.getLast(), toJsonCallback(callback));
+              currentBatchSize++;
+          } catch (IOException ex) {
+              throw translate(ex);
+          }
+      }
+
+      @Override
     public void addDelete(
         StorageObject storageObject, RpcBatch.Callback<Void> callback, Map<Option, ?> options) {
       try {
@@ -284,29 +298,7 @@ public class HttpStorageRpc implements StorageRpc {
     Span span = startSpan(HttpStorageRpcSpans.SPAN_NAME_CREATE_OBJECT);
     Scope scope = tracer.withSpan(span);
     try {
-      Storage.Objects.Insert insert =
-          storage
-              .objects()
-              .insert(
-                  storageObject.getBucket(),
-                  storageObject,
-                  new InputStreamContent(detectContentType(storageObject, options), content));
-      insert.getMediaHttpUploader().setDirectUploadEnabled(true);
-      Boolean disableGzipContent = Option.IF_DISABLE_GZIP_CONTENT.getBoolean(options);
-      if (disableGzipContent != null) {
-        insert.setDisableGZipContent(disableGzipContent);
-      }
-      setEncryptionHeaders(insert.getRequestHeaders(), ENCRYPTION_KEY_PREFIX, options);
-      return insert
-          .setProjection(DEFAULT_PROJECTION)
-          .setPredefinedAcl(Option.PREDEFINED_ACL.getString(options))
-          .setIfMetagenerationMatch(Option.IF_METAGENERATION_MATCH.getLong(options))
-          .setIfMetagenerationNotMatch(Option.IF_METAGENERATION_NOT_MATCH.getLong(options))
-          .setIfGenerationMatch(Option.IF_GENERATION_MATCH.getLong(options))
-          .setIfGenerationNotMatch(Option.IF_GENERATION_NOT_MATCH.getLong(options))
-          .setUserProject(Option.USER_PROJECT.getString(options))
-          .setKmsKeyName(Option.KMS_KEY_NAME.getString(options))
-          .execute();
+      return insertCall(storageObject, content, options).execute();
     } catch (IOException ex) {
       span.setStatus(Status.UNKNOWN.withDescription(ex.getMessage()));
       throw translate(ex);
@@ -314,6 +306,33 @@ public class HttpStorageRpc implements StorageRpc {
       scope.close();
       span.end(HttpStorageRpcSpans.END_SPAN_OPTIONS);
     }
+  }
+
+  private Storage.Objects.Insert insertCall(
+      StorageObject storageObject, final InputStream content, Map<Option, ?> options)
+      throws IOException {
+    Storage.Objects.Insert insert =
+        storage
+            .objects()
+            .insert(
+                storageObject.getBucket(),
+                storageObject,
+                new InputStreamContent(detectContentType(storageObject, options), content));
+    insert.getMediaHttpUploader().setDirectUploadEnabled(true);
+    Boolean disableGzipContent = Option.IF_DISABLE_GZIP_CONTENT.getBoolean(options);
+    if (disableGzipContent != null) {
+      insert.setDisableGZipContent(disableGzipContent);
+    }
+    setEncryptionHeaders(insert.getRequestHeaders(), ENCRYPTION_KEY_PREFIX, options);
+    return insert
+        .setProjection(DEFAULT_PROJECTION)
+        .setPredefinedAcl(Option.PREDEFINED_ACL.getString(options))
+        .setIfMetagenerationMatch(Option.IF_METAGENERATION_MATCH.getLong(options))
+        .setIfMetagenerationNotMatch(Option.IF_METAGENERATION_NOT_MATCH.getLong(options))
+        .setIfGenerationMatch(Option.IF_GENERATION_MATCH.getLong(options))
+        .setIfGenerationNotMatch(Option.IF_GENERATION_NOT_MATCH.getLong(options))
+        .setUserProject(Option.USER_PROJECT.getString(options))
+        .setKmsKeyName(Option.KMS_KEY_NAME.getString(options));
   }
 
   @Override

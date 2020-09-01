@@ -1585,12 +1585,31 @@ public class ITStorageTest {
 
   @Test
   public void testBatchRequest() {
-    String sourceBlobName1 = "test-batch-request-blob-1";
+    /*String sourceBlobName1 = "test-batch-request-blob-1";
     String sourceBlobName2 = "test-batch-request-blob-2";
     BlobInfo sourceBlob1 = BlobInfo.newBuilder(BUCKET, sourceBlobName1).build();
     BlobInfo sourceBlob2 = BlobInfo.newBuilder(BUCKET, sourceBlobName2).build();
     assertNotNull(storage.create(sourceBlob1));
-    assertNotNull(storage.create(sourceBlob2));
+    assertNotNull(storage.create(sourceBlob2));*/
+
+    // Batch create request
+    String sourceBlobName1 = "test-batch-request-blob-1";
+    String sourceBlobName2 = "test-batch-request-blob-2";
+    BlobInfo sourceBlob1 = BlobInfo.newBuilder(BUCKET, sourceBlobName1).build();
+    BlobInfo sourceBlob2 = BlobInfo.newBuilder(BUCKET, sourceBlobName2).build();
+
+    StorageBatch insertBatch = storage.batch();
+    StorageBatchResult<Blob> insertResult1 = insertBatch.create(sourceBlob1,"test".getBytes());
+    StorageBatchResult<Blob> insertResult2 = insertBatch.create(sourceBlob1,"test".getBytes());
+    insertBatch.submit();
+    Blob remoteInsertedBlob1 = insertResult1.get();
+    System.out.println("BLOB1:"+remoteInsertedBlob1);
+    Blob remoteInsertedBlob2 = insertResult2.get();
+    System.out.println("BLOB2:"+remoteInsertedBlob2);
+    assertEquals(sourceBlob1.getBucket(), remoteInsertedBlob1.getBucket());
+    assertEquals(sourceBlob1.getName(), remoteInsertedBlob1.getName());
+    assertEquals(sourceBlob2.getBucket(), remoteInsertedBlob1.getBucket());
+    assertEquals(sourceBlob2.getName(), remoteInsertedBlob2.getName());
 
     // Batch update request
     BlobInfo updatedBlob1 = sourceBlob1.toBuilder().setContentType(CONTENT_TYPE).build();
@@ -3563,6 +3582,18 @@ public class ITStorageTest {
       assertThat(updatedBucket.getUpdateTime()).isNotNull();
       assertThat(updatedBucket.getCreateTime()).isEqualTo(bucket.getCreateTime());
       assertThat(updatedBucket.getUpdateTime()).isGreaterThan(bucket.getCreateTime());
+
+      HttpTransportOptions transportOptions = StorageOptions.getDefaultHttpTransportOptions();
+      transportOptions = transportOptions.toBuilder().setConnectTimeout(30000).setReadTimeout(30000)
+              .build();
+      System.out.println(transportOptions.getConnectTimeout());
+      StorageOptions storageOptions = StorageOptions.newBuilder()
+              //.setRetrySettings(retrySettings())
+              .setTransportOptions(transportOptions)
+              .build();
+      System.out.println(storageOptions.getTransportOptions());
+      Storage storage = storageOptions.getService();
+
     } finally {
       RemoteStorageHelper.forceDelete(storage, bucketName, 5, TimeUnit.SECONDS);
     }
